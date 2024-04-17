@@ -14,9 +14,7 @@
   <img alt="License" src="https://img.shields.io/badge/license-MIT-%2327449F">
 
   <img alt="Stargazers" src="https://img.shields.io/github/stars/lopesboa/identity-sphere?style=social">
-
-  <a href="https://www.buymeacoffee.com/lopesboa" target="_blank">
-  <img alt="Buy Me A Coffee" src=".github/buy-me-a-coffee.png"></a>
+  
 </p>
 
 ## Table of contents
