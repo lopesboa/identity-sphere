@@ -1,8 +1,8 @@
 ## IdentitySphere
 
-<h4 align="center">
+<p>
   IdentitySphere is a powerful and efficient identity management service built in Go. It leverages the GoCloak library for interacting with Keycloak, a leading open-source identity and access management solution. The service provides a robust set of features for managing user identities, authentication, and authorization, all while utilizing the speed and concurrency of Go.
-</h4>
+</p>
 
 <p align="center">
   <img alt="GitHub language count" src="https://img.shields.io/github/languages/count/lopesboa/identity-sphere?color=%2327449F">
