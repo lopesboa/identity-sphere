@@ -11,10 +11,10 @@
     <img alt="Made by Lopes Boa" src="https://img.shields.io/badge/made%20by-Lopes Boa-%2327449F">
   </a>
 
-  <img alt="License" src="https://img.shields.io/badge/license-MIT-%2327449F">
+  <img alt="License" src="https://img.shields.io/badge/license-APACHE-%2327449F">
 
   <img alt="Stargazers" src="https://img.shields.io/github/stars/lopesboa/identity-sphere?style=social">
-  
+
 </p>
 
 ## Table of contents
