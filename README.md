@@ -13,7 +13,12 @@
 
   <img alt="License" src="https://img.shields.io/badge/license-APACHE-%2327449F">
 
-  <img alt="Stargazers" src="https://img.shields.io/github/stars/lopesboa/identity-sphere?style=social">
+ <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/lopesboa/identity-sphere?style=social">
+
+
+
+<!-- <img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/lopesboa"> -->
+
 
 </p>
 
