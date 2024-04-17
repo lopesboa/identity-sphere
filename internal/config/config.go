@@ -8,11 +8,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-func InitViper() {
+func Init() {
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("json")
 	viper.SetEnvPrefix("bk")
+	viper.AddConfigPath(".")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	err := viper.ReadInConfig()
@@ -22,5 +23,10 @@ func InitViper() {
 	}
 
 	log.Println("viper config initialized")
+}
 
+func GetLogger(p string) *Logger {
+	logger := NewLogger(p)
+
+	return logger
 }
