@@ -19,10 +19,10 @@ func NewLogger(prefix string) *Logger {
 	logger := log.New(writer, prefix, log.Ldate|log.Ltime)
 
 	return &Logger{
-		debug:   log.New(writer, "DEBUG", logger.Flags()),
-		info:    log.New(writer, "INFO", logger.Flags()),
-		warning: log.New(writer, "WARNING", logger.Flags()),
-		error:   log.New(writer, "ERROR", logger.Flags()),
+		debug:   log.New(writer, "DEBUG: ", logger.Flags()),
+		info:    log.New(writer, "INFO: ", logger.Flags()),
+		warning: log.New(writer, "WARNING: ", logger.Flags()),
+		error:   log.New(writer, "ERROR: ", logger.Flags()),
 		writer:  writer,
 	}
 }
@@ -51,4 +51,10 @@ func (l *Logger) Warnf(format string, v ...interface{}) {
 }
 func (l *Logger) Errorf(format string, v ...interface{}) {
 	l.error.Printf(format, v...)
+}
+
+func GetLogger(p string) *Logger {
+	logger := NewLogger(p)
+
+	return logger
 }

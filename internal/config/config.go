@@ -2,13 +2,17 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/spf13/viper"
 )
 
+var (
+	logger *Logger
+)
+
 func Init() {
+	logger = GetLogger("main")
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("json")
@@ -22,11 +26,5 @@ func Init() {
 		panic(fmt.Errorf("unable to initialize viper: %w", err))
 	}
 
-	log.Println("viper config initialized")
-}
-
-func GetLogger(p string) *Logger {
-	logger := NewLogger(p)
-
-	return logger
+	logger.Info("viper config initialized")
 }
