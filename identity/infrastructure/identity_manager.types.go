@@ -6,11 +6,6 @@ import (
 	"github.com/Nerzal/gocloak/v13"
 )
 
-type IdentityManager interface {
-	LoginRestApiClient(ctx context.Context) (*gocloak.JWT, error)
-	CreateUser(ctx context.Context, user gocloak.User, password string, role string) (*gocloak.User, error)
-}
-
 type GoCloakClient interface {
 	LoginClient(ctx context.Context, clientID string, clientSecret string, realm string, scopes ...string) (*gocloak.JWT, error)
 	CreateUser(ctx context.Context, token string, realm string, user gocloak.User) (string, error)
