@@ -30,7 +30,7 @@ func (im *identityManager) LoginRestApiClient(ctx context.Context) (*gocloak.JWT
 	return im.client.LoginClient(ctx, im.RestApiClientId, im.RestApiClientSecret, im.Realm)
 }
 
-func (im *identityManager) CreateUser(ctx context.Context, user gocloak.User, password string, role string) (*gocloak.User, error) {
+func (im *identityManager) CreateUser(ctx context.Context, user gocloak.User, password string) (*gocloak.User, error) {
 	token, err := im.LoginRestApiClient(ctx)
 
 	if err != nil {
