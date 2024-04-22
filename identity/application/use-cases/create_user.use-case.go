@@ -1,4 +1,4 @@
-package appliaction
+package usecases
 
 import (
 	"context"
@@ -18,7 +18,7 @@ type CreateUserRequest struct {
 	MobileNumber string
 }
 
-type createUserResponse struct {
+type CreateUserResponse struct {
 	User *gocloak.User
 }
 
@@ -32,7 +32,7 @@ func NewCreateUserUseCase(im types.IdentityManager) *createUserUseCase {
 	}
 }
 
-func (uc *createUserUseCase) CreateUser(ctx context.Context, request CreateUserRequest) (*createUserResponse, error) {
+func (uc *createUserUseCase) CreateUser(ctx context.Context, request CreateUserRequest) (*CreateUserResponse, error) {
 	var validate = validator.New()
 	err := validate.Struct(request)
 
@@ -63,7 +63,7 @@ func (uc *createUserUseCase) CreateUser(ctx context.Context, request CreateUserR
 		return nil, err
 	}
 
-	var response = &createUserResponse{User: userResponse}
+	var response = &CreateUserResponse{User: userResponse}
 
 	return response, nil
 }
