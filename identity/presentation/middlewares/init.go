@@ -13,6 +13,9 @@ type Logger interface {
 	Info(v ...interface{})
 }
 
+type publicRoutes func(app *fiber.App)
+type privateRoutes func(app *fiber.App)
+
 func useFiberCtx(fiberCtx *fiber.Ctx) error {
 	var requestId = fiberCtx.Locals("requestId")
 	var ctx = context.WithValue(context.Background(), types.ContextKeyRequestId, requestId)
@@ -21,13 +24,13 @@ func useFiberCtx(fiberCtx *fiber.Ctx) error {
 	return fiberCtx.Next()
 }
 
-func InitFiberMiddlewares(app *fiber.App, publicRoutes func(app *fiber.App), privateRoutes func(app *fiber.App), l Logger) {
+func InitFiberMiddlewares(app *fiber.App, publicRoutes publicRoutes, privateRoutes privateRoutes, localLogger Logger) {
 	app.Use(requestid.New())
 	app.Use(logger.New())
 	app.Use(useFiberCtx)
 
 	publicRoutes(app)
 
-	l.Info("fiber middleware initialized")
+	localLogger.Info("fiber middleware initialized")
 
 }
