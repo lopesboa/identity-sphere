@@ -13,7 +13,7 @@ type createUserUseCase interface {
 }
 
 type logger interface {
-	Error(message string)
+	Error(v ...interface{})
 }
 
 func HandlerCreateUser(logger logger, uc createUserUseCase) fiber.Handler {
