@@ -48,14 +48,13 @@ func (uc *createUserUseCase) CreateUser(ctx context.Context, request CreateUserR
 		EmailVerified: gocloak.BoolP(false),
 		Enabled:       gocloak.BoolP(true),
 		Attributes:    &map[string][]string{},
-		ClientRoles: &map[string][]string{
-			"bakongo-backend": {"car:read"},
-		},
+		ClientRoles:   &map[string][]string{},
 	}
 
 	if strings.TrimSpace(request.MobileNumber) != "" {
 		(*user.Attributes)["mobile"] = []string{request.MobileNumber}
 	}
+	(*user.ClientRoles)["bakongo-backend"] = []string{"car:read"}
 
 	userResponse, err := uc.im.CreateUser(ctx, user, request.Password)
 
