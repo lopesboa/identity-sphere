@@ -54,7 +54,7 @@ func (uc *createUserUseCase) CreateUser(ctx context.Context, request CreateUserR
 	if strings.TrimSpace(request.MobileNumber) != "" {
 		(*user.Attributes)["mobile"] = []string{request.MobileNumber}
 	}
-	(*user.ClientRoles)["bakongo-backend"] = []string{"car:read"}
+	(*user.ClientRoles)["bakongo-backend"] = []string{"cars:read"}
 
 	userResponse, err := uc.im.CreateUser(ctx, user, request.Password)
 
