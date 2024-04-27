@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/pkg/errors"
@@ -13,51 +14,67 @@ type identityManager struct {
 	Realm               string
 	RestApiClientId     string
 	RestApiClientSecret string
-	client              GoCloakClient
 }
 
-func NewIdentityManager(client GoCloakClient) *identityManager {
+func NewIdentityManager() *identityManager {
 	return &identityManager{
 		BaseUrl:             viper.GetString("Keycloak.BaseUrl"),
 		Realm:               viper.GetString("Keycloak.Realm"),
-		RestApiClientId:     viper.GetString("Keycloak.ClientId"),
-		RestApiClientSecret: viper.GetString("Keycloak.ClientSecret"),
-		client:              client,
+		RestApiClientId:     viper.GetString("Keycloak.RestApi.ClientId"),
+		RestApiClientSecret: viper.GetString("Keycloak.RestApi.ClientSecret"),
 	}
 }
 
-func (im *identityManager) LoginRestApiClient(ctx context.Context) (*gocloak.JWT, error) {
-	return im.client.LoginClient(ctx, im.RestApiClientId, im.RestApiClientSecret, im.Realm)
+func (im *identityManager) loginRestApiClient(ctx context.Context) (*gocloak.JWT, error) {
+	client := gocloak.NewClient(im.BaseUrl)
+
+	token, err := client.LoginClient(ctx, im.RestApiClientId, im.RestApiClientSecret, im.Realm)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to login the REST API client")
+	}
+
+	return token, nil
 }
 
 func (im *identityManager) CreateUser(ctx context.Context, user gocloak.User, password string) (*gocloak.User, error) {
-	token, err := im.LoginRestApiClient(ctx)
+	token, err := im.loginRestApiClient(ctx)
 
 	if err != nil {
 		return nil, err
 	}
 
-	userId, err := im.client.CreateUser(ctx, token.AccessToken, im.Realm, user)
+	client := gocloak.NewClient(im.BaseUrl)
+
+	userId, err := client.CreateUser(ctx, token.AccessToken, im.Realm, user)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create the user")
 	}
 
-	isPassWorkTemporary := false
-
-	err = im.client.SetPassword(ctx, token.AccessToken, userId, im.Realm, password, isPassWorkTemporary)
+	err = client.SetPassword(ctx, token.AccessToken, userId, im.Realm, password, false)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to set the password for the user")
+		return nil, errors.Wrap(err, "unable to set the password  for the user")
 	}
 
-	// TODO: Find a way to asign role to the user based on clientId.
+	clientRole, err := client.GetClientRole(ctx, token.AccessToken, im.Realm, im.RestApiClientId, "cars:read")
 
-	newUser, err := im.client.GetUserByID(ctx, token.AccessToken, im.Realm, userId)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("unable to get role by name: '%v"))
+	}
+
+	err = client.AddClientRolesToUser(ctx, token.AccessToken, im.Realm, im.RestApiClientId, userId, []gocloak.Role{*clientRole})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to add client role to user")
+	}
+
+	newUser, err := client.GetUserByID(ctx, token.AccessToken, im.Realm, userId)
+
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get recently created user")
 	}
 
 	return newUser, nil
-
 }

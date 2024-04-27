@@ -40,10 +40,10 @@ func HandlerCreateUser(logger logger, uc createUserUseCase) fiber.Handler {
 
 func handleError(ctx *fiber.Ctx, logger logger, err error, message string) error {
 	if errors.Is(err, context.Canceled) {
-		logger.Error(message)
+		logger.Error(message, err)
 		return ctx.Status(fiber.StatusRequestTimeout).JSON(fiber.Map{"error": "request timeout"})
 	}
 
-	logger.Error(message)
+	logger.Error(message, err)
 	return ctx.Status(fiber.StatusBadGateway).JSON(fiber.Map{"error": message})
 }
