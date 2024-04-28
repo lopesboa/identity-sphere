@@ -14,6 +14,7 @@ type identityManager struct {
 	Realm               string
 	RestApiClientId     string
 	RestApiClientSecret string
+	IdOfClient          string
 }
 
 func NewIdentityManager() *identityManager {
@@ -22,6 +23,7 @@ func NewIdentityManager() *identityManager {
 		Realm:               viper.GetString("Keycloak.Realm"),
 		RestApiClientId:     viper.GetString("Keycloak.RestApi.ClientId"),
 		RestApiClientSecret: viper.GetString("Keycloak.RestApi.ClientSecret"),
+		IdOfClient:          viper.GetString("Keycloak.RestApi.IdOfClient"),
 	}
 }
 
@@ -58,13 +60,13 @@ func (im *identityManager) CreateUser(ctx context.Context, user gocloak.User, pa
 		return nil, errors.Wrap(err, "unable to set the password  for the user")
 	}
 
-	clientRole, err := client.GetClientRole(ctx, token.AccessToken, im.Realm, im.RestApiClientId, "cars:read")
+	clientRole, err := client.GetClientRole(ctx, token.AccessToken, im.Realm, im.IdOfClient, "cars:read")
 
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("unable to get role by name: '%v"))
+		return nil, errors.Wrap(err, fmt.Sprintf("unable to get role by name: '%v", err))
 	}
 
-	err = client.AddClientRolesToUser(ctx, token.AccessToken, im.Realm, im.RestApiClientId, userId, []gocloak.Role{*clientRole})
+	err = client.AddClientRolesToUser(ctx, token.AccessToken, im.Realm, im.IdOfClient, userId, []gocloak.Role{*clientRole})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to add client role to user")
