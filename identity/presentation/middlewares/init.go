@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/lopesboa/identity-sphere/identity/application/types"
+	"github.com/lopesboa/identity-sphere/identity/infrastructure"
 )
 
 type Logger interface {
@@ -29,7 +30,11 @@ func InitFiberMiddlewares(app *fiber.App, publicRoutes publicRoutes, privateRout
 	app.Use(logger.New())
 	app.Use(useFiberCtx)
 
+	identityManager := infrastructure.NewIdentityManager()
+
 	publicRoutes(app)
+
+	app.Use(NewJwtMiddleware(identityManager))
 
 	localLogger.Info("fiber middleware initialized")
 
