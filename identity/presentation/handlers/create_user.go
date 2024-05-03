@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	usecases "github.com/lopesboa/identity-sphere/identity/application/use-cases"
@@ -39,11 +40,20 @@ func HandlerCreateUser(logger logger, uc createUserUseCase) fiber.Handler {
 }
 
 func handleError(ctx *fiber.Ctx, logger logger, err error, message string) error {
-	if errors.Is(err, context.Canceled) {
+
+	switch {
+	case errors.Is(err, context.Canceled):
 		logger.Error(message, err)
 		return ctx.Status(fiber.StatusRequestTimeout).JSON(fiber.Map{"error": "request timeout"})
+	case strings.Contains(err.Error(), "409"):
+		logger.Error(message, err)
+		return ctx.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "User exists with same email"})
+	case strings.Contains(err.Error(), "404"):
+		logger.Error(message, err)
+		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "no found"})
+	default:
+		logger.Error(message, err)
+		return ctx.Status(fiber.StatusBadGateway).JSON(fiber.Map{"error": message})
 	}
 
-	logger.Error(message, err)
-	return ctx.Status(fiber.StatusBadGateway).JSON(fiber.Map{"error": message})
 }

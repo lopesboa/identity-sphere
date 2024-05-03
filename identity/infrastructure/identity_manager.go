@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Nerzal/gocloak/v13"
+	"github.com/lopesboa/identity-sphere/internal/config"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
@@ -17,6 +18,11 @@ type identityManager struct {
 	IdOfClient          string
 }
 
+type Logger interface {
+	Error(v ...interface{})
+	Info(v ...interface{})
+}
+
 func NewIdentityManager() *identityManager {
 	return &identityManager{
 		BaseUrl:             viper.GetString("Keycloak.BaseUrl"),
@@ -27,31 +33,50 @@ func NewIdentityManager() *identityManager {
 	}
 }
 
-func (im *identityManager) loginRestApiClient(ctx context.Context) (*gocloak.JWT, error) {
-	client := gocloak.NewClient(im.BaseUrl)
+func (im *identityManager) createNewClient() *gocloak.GoCloak {
+	return gocloak.NewClient(im.BaseUrl)
+}
+
+func (im *identityManager) loginRestApiClient(ctx context.Context, logger Logger) (*gocloak.JWT, error) {
+	client := im.createNewClient()
 
 	token, err := client.LoginClient(ctx, im.RestApiClientId, im.RestApiClientSecret, im.Realm)
 
 	if err != nil {
+		logger.Error(err, "unable to login the REST API client")
 		return nil, errors.Wrap(err, "unable to login the REST API client")
 	}
 
 	return token, nil
 }
 
+func (im *identityManager) goClientCreateUser(ctx context.Context, client *gocloak.GoCloak, accessToken string, user gocloak.User, logger Logger) (string, error) {
+	userId, err := client.CreateUser(ctx, accessToken, im.Realm, user)
+
+	if err != nil {
+		logger.Error(err)
+		return "", err
+	}
+
+	return userId, nil
+
+}
+
 func (im *identityManager) CreateUser(ctx context.Context, user gocloak.User, password string) (*gocloak.User, error) {
-	token, err := im.loginRestApiClient(ctx)
+	logger := config.GetLogger("identity manager")
+
+	token, err := im.loginRestApiClient(ctx, logger)
 
 	if err != nil {
 		return nil, err
 	}
 
-	client := gocloak.NewClient(im.BaseUrl)
+	client := im.createNewClient()
 
-	userId, err := client.CreateUser(ctx, token.AccessToken, im.Realm, user)
+	userId, err := im.goClientCreateUser(ctx, client, token.AccessToken, user, logger)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to create the user")
+		return nil, err
 	}
 
 	err = client.SetPassword(ctx, token.AccessToken, userId, im.Realm, password, false)
@@ -82,7 +107,8 @@ func (im *identityManager) CreateUser(ctx context.Context, user gocloak.User, pa
 }
 
 func (im *identityManager) RetrospectToken(ctx context.Context, accessToken string) (*gocloak.IntroSpectTokenResult, error) {
-	client := gocloak.NewClient(im.BaseUrl)
+	client := im.createNewClient()
+
 	retrospectToken, err := client.RetrospectToken(ctx, accessToken, im.RestApiClientId, im.RestApiClientSecret, im.Realm)
 
 	if err != nil {
