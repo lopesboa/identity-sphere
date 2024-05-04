@@ -38,21 +38,21 @@ func NewJwtMiddleware(tokenRetrospect TokenRetrospect) fiber.Handler {
 	})
 }
 
-func successHandler(fiberCtx *fiber.Ctx, tokenRetrospect TokenRetrospect) error {
+func successHandler(fiberCtx *fiber.Ctx, identityManager TokenRetrospect) error {
 	jwtToken := fiberCtx.Locals("user").(*golangJwt.Token)
 	claims := jwtToken.Claims.(golangJwt.MapClaims)
 
-	var ctx = fiberCtx.UserContext()
-	var contextWithClaims = context.WithValue(ctx, types.ContextKeyClaims, claims)
+	var userCtx = fiberCtx.UserContext()
+	var contextWithClaims = context.WithValue(userCtx, types.ContextKeyClaims, claims)
 	fiberCtx.SetUserContext(contextWithClaims)
 
-	retrospectTokenResult, err := tokenRetrospect.RetrospectToken(ctx, jwtToken.Raw)
+	retrospectToken, err := identityManager.RetrospectToken(userCtx, jwtToken.Raw)
 
 	if err != nil {
 		panic(err)
 	}
 
-	if !*retrospectTokenResult.Active {
+	if !*retrospectToken.Active {
 		return fiberCtx.Status(fiber.StatusUnauthorized).SendString("invalid credentials")
 	}
 
