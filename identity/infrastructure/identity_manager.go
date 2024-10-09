@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Nerzal/gocloak/v13"
-	"github.com/lopesboa/identity-sphere/internal/config"
+	"github.com/lopesboa/identity-sphere/internal/tools"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
@@ -63,7 +63,7 @@ func (im *identityManager) goClientCreateUser(ctx context.Context, client *goclo
 }
 
 func (im *identityManager) CreateUser(ctx context.Context, user gocloak.User, password string) (*gocloak.User, error) {
-	logger := config.GetLogger("identity manager")
+	logger := tools.GetLogger("identity manager")
 
 	token, err := im.loginRestApiClient(ctx, logger)
 
@@ -82,18 +82,23 @@ func (im *identityManager) CreateUser(ctx context.Context, user gocloak.User, pa
 	err = client.SetPassword(ctx, token.AccessToken, userId, im.Realm, password, false)
 
 	if err != nil {
+		client.DeleteUser(ctx, token.AccessToken, im.Realm, userId)
 		return nil, errors.Wrap(err, "unable to set the password  for the user")
 	}
 
-	clientRole, err := client.GetClientRole(ctx, token.AccessToken, im.Realm, im.IdOfClient, "cars:read")
+	//TODO: Find a wait to asign realm role on user creation
+	realmRole, err := client.GetRealmRole(ctx, token.AccessToken, im.Realm, "viewer")
 
 	if err != nil {
+		client.DeleteUser(ctx, token.AccessToken, im.Realm, userId)
 		return nil, errors.Wrap(err, fmt.Sprintf("unable to get role by name: '%v", err))
 	}
 
-	err = client.AddClientRolesToUser(ctx, token.AccessToken, im.Realm, im.IdOfClient, userId, []gocloak.Role{*clientRole})
+	err = client.AddRealmRoleToUser(ctx, token.AccessToken, im.Realm, userId, []gocloak.Role{*realmRole})
 
 	if err != nil {
+		client.DeleteUser(ctx, token.AccessToken, im.Realm, userId)
+
 		return nil, errors.Wrap(err, "unable to add client role to user")
 	}
 
