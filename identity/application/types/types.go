@@ -8,8 +8,16 @@ import (
 
 type contextKey int
 
+type LoginResponse struct {
+	AccessToken  string
+	ExpiresIn    int
+	RefreshToken string
+	Scope        string
+}
+
 type IdentityManager interface {
-	CreateUser(ctx context.Context, user gocloak.User, password string) (*gocloak.User, error)
+	CreateUser(ctx context.Context, user gocloak.User) error
+	// Login(ctx context.Context, ) (*LoginResponse, error)
 }
 
 const (

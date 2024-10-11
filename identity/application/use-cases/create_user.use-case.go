@@ -32,35 +32,39 @@ func NewCreateUserUseCase(im types.IdentityManager) *createUserUseCase {
 	}
 }
 
-func (uc *createUserUseCase) CreateUser(ctx context.Context, request CreateUserRequest) (*CreateUserResponse, error) {
+func (uc *createUserUseCase) CreateUser(ctx context.Context, params CreateUserRequest) error {
 	var validate = validator.New()
-	err := validate.Struct(request)
+	err := validate.Struct(params)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var user = gocloak.User{
-		Username:      gocloak.StringP(request.Username),
-		FirstName:     gocloak.StringP(request.FirstName),
-		LastName:      gocloak.StringP(request.LastName),
-		Email:         gocloak.StringP(request.Email),
+		Username:      gocloak.StringP(params.Username),
+		FirstName:     gocloak.StringP(params.FirstName),
+		LastName:      gocloak.StringP(params.LastName),
+		Email:         gocloak.StringP(params.Email),
 		EmailVerified: gocloak.BoolP(false),
 		Enabled:       gocloak.BoolP(true),
 		Attributes:    &map[string][]string{},
+		RealmRoles:    &[]string{"viewr"},
+		Credentials: &[]gocloak.CredentialRepresentation{
+			{
+				Value: gocloak.StringP(params.Password),
+			},
+		},
 	}
 
-	if strings.TrimSpace(request.MobileNumber) != "" {
-		(*user.Attributes)["mobile"] = []string{request.MobileNumber}
+	if strings.TrimSpace(params.MobileNumber) != "" {
+		(*user.Attributes)["mobile"] = []string{params.MobileNumber}
 	}
 
-	userResponse, err := uc.im.CreateUser(ctx, user, request.Password)
+	err = uc.im.CreateUser(ctx, user)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var response = &CreateUserResponse{User: userResponse}
-
-	return response, nil
+	return nil
 }

@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/lopesboa/identity-sphere/internal/tools"
@@ -16,6 +15,7 @@ type identityManager struct {
 	RestApiClientId     string
 	RestApiClientSecret string
 	IdOfClient          string
+	RedirectURI         string
 }
 
 type Logger interface {
@@ -30,6 +30,7 @@ func NewIdentityManager() *identityManager {
 		RestApiClientId:     viper.GetString("Keycloak.RestApi.ClientId"),
 		RestApiClientSecret: viper.GetString("Keycloak.RestApi.ClientSecret"),
 		IdOfClient:          viper.GetString("Keycloak.RestApi.IdOfClient"),
+		RedirectURI:         viper.GetString("Keycloak.RestApi.RedirectURI"),
 	}
 }
 
@@ -46,75 +47,23 @@ func (im *identityManager) loginRestApiClient(ctx context.Context, logger Logger
 	return token, nil
 }
 
-func (im *identityManager) goClientCreateUser(ctx context.Context, client *gocloak.GoCloak, accessToken string, user gocloak.User, logger Logger) (string, error) {
-	userId, err := client.CreateUser(ctx, accessToken, im.Realm, user)
-
-	if err != nil {
-		logger.Error(err)
-		return "", err
-	}
-
-	return userId, nil
-
-}
-
-func (im *identityManager) CreateUser(ctx context.Context, user gocloak.User, password string) (*gocloak.User, error) {
+func (im *identityManager) CreateUser(ctx context.Context, user gocloak.User) error {
 	logger := tools.GetLogger("identity manager")
 
 	token, err := im.loginRestApiClient(ctx, logger)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	client := im.createNewClient()
+	client := CreateNewClient(im.BaseUrl)
 
-	userId, err := im.goClientCreateUser(ctx, client, token.AccessToken, user, logger)
+	userId, err := client.CreateUser(ctx, token.AccessToken, im.Realm, user)
 
 	if err != nil {
-		return nil, err
+		logger.Error(err, userId)
+		return err
 	}
 
-	err = client.SetPassword(ctx, token.AccessToken, userId, im.Realm, password, false)
-
-	if err != nil {
-		client.DeleteUser(ctx, token.AccessToken, im.Realm, userId)
-		return nil, errors.Wrap(err, "unable to set the password  for the user")
-	}
-
-	//TODO: Find a wait to asign realm role on user creation
-	realmRole, err := client.GetRealmRole(ctx, token.AccessToken, im.Realm, "viewer")
-
-	if err != nil {
-		client.DeleteUser(ctx, token.AccessToken, im.Realm, userId)
-		return nil, errors.Wrap(err, fmt.Sprintf("unable to get role by name: '%v", err))
-	}
-
-	err = client.AddRealmRoleToUser(ctx, token.AccessToken, im.Realm, userId, []gocloak.Role{*realmRole})
-
-	if err != nil {
-		client.DeleteUser(ctx, token.AccessToken, im.Realm, userId)
-
-		return nil, errors.Wrap(err, "unable to add client role to user")
-	}
-
-	newUser, err := client.GetUserByID(ctx, token.AccessToken, im.Realm, userId)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get recently created user")
-	}
-
-	return newUser, nil
-}
-
-func (im *identityManager) RetrospectToken(ctx context.Context, accessToken string) (*gocloak.IntroSpectTokenResult, error) {
-	client := im.createNewClient()
-
-	retrospectToken, err := client.RetrospectToken(ctx, accessToken, im.RestApiClientId, im.RestApiClientSecret, im.Realm)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to retrospect token")
-	}
-
-	return retrospectToken, nil
+	return nil
 }

@@ -1,13 +1,13 @@
 package main
 
 import (
-	router "github.com/lopesboa/identity-sphere/identity/presentation/routes"
-	"github.com/lopesboa/identity-sphere/internal/config"
+	"github.com/lopesboa/identity-sphere/api/handlers/routes"
+	"github.com/lopesboa/identity-sphere/internal/tools"
 )
 
 func main() {
 
-	config.Init()
+	tools.Init()
 
-	router.Initialize()
+	routes.Initialize()
 }

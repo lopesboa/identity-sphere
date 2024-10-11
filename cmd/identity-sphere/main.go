@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/lopesboa/identity-sphere/internal/handlers/routes"
+	"github.com/lopesboa/identity-sphere/api/handlers/routes"
 	"github.com/lopesboa/identity-sphere/internal/tools"
 )
 
