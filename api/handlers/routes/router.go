@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/lopesboa/identity-sphere/internal/middlewares"
+	"github.com/lopesboa/identity-sphere/api/middlewares"
 	"github.com/lopesboa/identity-sphere/internal/tools"
 
 	"github.com/spf13/viper"
