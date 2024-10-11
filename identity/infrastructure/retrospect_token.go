@@ -7,10 +7,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-func RetrospectToken(ctx context.Context, accessToken string) (*gocloak.IntroSpectTokenResult, error) {
-	im := NewIdentityManager()
+func (im *identityManager) RetrospectToken(ctx context.Context, accessToken string) (*gocloak.IntroSpectTokenResult, error) {
 
-	client := im.createNewClient()
+	client := CreateNewClient(im.BaseUrl)
 
 	retrospectToken, err := client.RetrospectToken(ctx, accessToken, im.RestApiClientId, im.RestApiClientSecret, im.Realm)
 

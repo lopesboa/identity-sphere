@@ -33,12 +33,8 @@ func NewIdentityManager() *identityManager {
 	}
 }
 
-func (im *identityManager) createNewClient() *gocloak.GoCloak {
-	return gocloak.NewClient(im.BaseUrl)
-}
-
 func (im *identityManager) loginRestApiClient(ctx context.Context, logger Logger) (*gocloak.JWT, error) {
-	client := im.createNewClient()
+	client := CreateNewClient(im.BaseUrl)
 
 	token, err := client.LoginClient(ctx, im.RestApiClientId, im.RestApiClientSecret, im.Realm)
 
